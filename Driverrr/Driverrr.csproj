@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Driverrr</AssemblyName>
     <RootNamespace>Driverrr</RootNamespace>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Product>Driverrr</Product>
     <Description>Mantiene al día los drivers del equipo con Windows Update y el Catálogo de Microsoft Update</Description>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
