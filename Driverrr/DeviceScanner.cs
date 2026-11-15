@@ -1,6 +1,6 @@
 using System.Management;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>Enumera los dispositivos del PC y el driver que usa cada uno (vía WMI).</summary>
 public static class DeviceScanner

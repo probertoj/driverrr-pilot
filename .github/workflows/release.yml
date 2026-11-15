@@ -22,19 +22,19 @@ jobs:
       # Informativas: dependen del hardware y de la red de la máquina donde corren.
       - name: Pruebas
         continue-on-error: true
-        run: dotnet run --project DriverPilot.Tests -c Release
+        run: dotnet run --project Driverrr.Tests -c Release
 
       - name: Compilar ejecutable único
         run: >
-          dotnet publish DriverPilot/DriverPilot.csproj -c Release -r win-x64 --self-contained true
+          dotnet publish Driverrr/Driverrr.csproj -c Release -r win-x64 --self-contained true
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -p:EnableCompressionInSingleFile=true -o dist
 
       - name: Huella SHA-256
         shell: pwsh
         run: |
-          $hash = (Get-FileHash dist/DriverPilot.exe -Algorithm SHA256).Hash.ToLower()
-          "$hash  DriverPilot.exe" | Out-File dist/SHA256SUMS.txt -Encoding ascii
+          $hash = (Get-FileHash dist/Driverrr.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  Driverrr.exe" | Out-File dist/SHA256SUMS.txt -Encoding ascii
           Get-Content dist/SHA256SUMS.txt
 
       - name: Crear la Release
@@ -43,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $notas = @"
-          Descarga **DriverPilot.exe** y ábrelo: no necesita instalar nada más.
+          Descarga **Driverrr.exe** y ábrelo: no necesita instalar nada más.
 
           - Windows 10 u 11 de 64 bits.
           - El ejecutable no está firmado: Windows puede mostrar un aviso de SmartScreen la primera vez.
@@ -51,4 +51,4 @@ jobs:
 
           Versión temprana, probada en un solo equipo. Lee el README antes de usarla.
           "@
-          gh release create "${{ github.ref_name }}" dist/DriverPilot.exe dist/SHA256SUMS.txt --title "DriverPilot ${{ github.ref_name }}" --notes $notas
+          gh release create "${{ github.ref_name }}" dist/Driverrr.exe dist/SHA256SUMS.txt --title "Driverrr ${{ github.ref_name }}" --notes $notas

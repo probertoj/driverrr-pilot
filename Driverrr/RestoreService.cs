@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>Un driver que se cambió y del que hay copia para volver atrás.</summary>
 public class RestoreItem : INotifyPropertyChanged
@@ -49,7 +49,7 @@ public static class RestoreService
     {
         try
         {
-            File.WriteAllText(Path.Combine(backupDir, "driverpilot-info.json"),
+            File.WriteAllText(Path.Combine(backupDir, "driverrr-info.json"),
                 JsonSerializer.Serialize(new BackupInfo(device.DeviceId, device.Name, device.Version)));
         }
         catch { }
@@ -103,7 +103,10 @@ public static class RestoreService
                 string? deviceId = null, name = parsed.Value.Name;
                 try
                 {
-                    var info = JsonSerializer.Deserialize<BackupInfo>(File.ReadAllText(Path.Combine(dir, "driverpilot-info.json")));
+                    // Las copias hechas con el nombre antiguo de la app guardaron el fichero con ese nombre.
+                    var infoFile = new[] { "driverrr-info.json", SecurePaths.LegacyName.ToLowerInvariant() + "-info.json" }
+                        .Select(n => Path.Combine(dir, n)).First(p => File.Exists(p));
+                    var info = JsonSerializer.Deserialize<BackupInfo>(File.ReadAllText(infoFile));
                     if (info != null) { deviceId = info.DeviceId; name = info.Name; }
                 }
                 catch { }
@@ -202,7 +205,7 @@ public static class RestoreService
             var root = Path.GetFullPath(SafetyService.BackupRoot);
             var folder = Path.GetFullPath(item.BackupFolder);
             if (!folder.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                return Fail("La copia no está en la carpeta de copias de DriverPilot.");
+                return Fail("La copia no está en la carpeta de copias de Driverrr.");
             SecurePaths.HardenRoot(SecurePaths.MachineRoot);
             for (var p = folder; !p.Equals(SecurePaths.MachineRoot, StringComparison.OrdinalIgnoreCase); p = Path.GetDirectoryName(p)!)
                 SecurePaths.AssertTrusted(p);

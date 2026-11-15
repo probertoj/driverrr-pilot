@@ -3,7 +3,7 @@ using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>
 /// Dos zonas de disco con distinta confianza:
@@ -18,14 +18,44 @@ public static class SecurePaths
     {
         get
         {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DriverPilot");
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Driverrr");
             Directory.CreateDirectory(dir);
             return dir;
         }
     }
 
-    public static string MachineRoot =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "DriverPilot");
+    /// <summary>Nombre que tuvo la app en sus primeras versiones; solo se usa para no perder sus datos.</summary>
+    internal const string LegacyName = "DriverPilot";
+
+    static string NewMachineRoot =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Driverrr");
+
+    static string LegacyMachineRoot =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LegacyName);
+
+    /// <summary>
+    /// Zona de máquina. Si solo existe la carpeta del nombre antiguo (con las copias de seguridad de drivers),
+    /// la app elevada la renombra; sin elevar se lee de la antigua para que «Restaurar» siga mostrando las copias.
+    /// </summary>
+    public static string MachineRoot
+    {
+        get
+        {
+            if (Directory.Exists(NewMachineRoot) || !Directory.Exists(LegacyMachineRoot)) return NewMachineRoot;
+            if (!SafetyService.IsAdmin()) return LegacyMachineRoot;
+            try
+            {
+                // Solo se adopta una carpeta antigua de fiar: propiedad de Administradores y que no sea un enlace.
+                AssertTrusted(LegacyMachineRoot);
+                Directory.Move(LegacyMachineRoot, NewMachineRoot);
+                return NewMachineRoot;
+            }
+            catch
+            {
+                return NewMachineRoot;   // no se pudo adoptar: se empieza de cero en la carpeta nueva
+            }
+        }
+    }
 
     public static string SystemTool(string exe) => Path.Combine(Environment.SystemDirectory, exe);
 

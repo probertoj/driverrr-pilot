@@ -6,10 +6,10 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>DriverPilot</AssemblyName>
-    <RootNamespace>DriverPilot</RootNamespace>
-    <Version>0.2.0</Version>
-    <Product>DriverPilot</Product>
+    <AssemblyName>Driverrr</AssemblyName>
+    <RootNamespace>Driverrr</RootNamespace>
+    <Version>0.3.0</Version>
+    <Product>Driverrr</Product>
     <Description>Mantiene al día los drivers del equipo con Windows Update y el Catálogo de Microsoft Update</Description>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
@@ -17,7 +17,7 @@
 
     <!-- El binario no debe llevar rutas ni nombres del equipo donde se compila -->
     <Deterministic>true</Deterministic>
-    <PathMap>$(MSBuildProjectDirectory)=/src/DriverPilot</PathMap>
+    <PathMap>$(MSBuildProjectDirectory)=/src/Driverrr</PathMap>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 

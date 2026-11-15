@@ -10,7 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>
 /// Segunda fuente de drivers: el Catálogo de Microsoft Update (web pública de Microsoft).
@@ -34,7 +34,7 @@ public static class CatalogService
     static HttpClient CreateClient()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromSeconds(40) };
-        c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) DriverPilot/0.1");
+        c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Driverrr/0.1");
         return c;
     }
 

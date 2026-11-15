@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>Registro de lo que hace la app, para poder diagnosticar una instalación después.</summary>
 public static class Log
@@ -19,11 +19,11 @@ public static class Log
             if (_path != null) return _path;
             try
             {
-                _path = Path.Combine(SafetyService.IsAdmin() ? SecurePaths.MachineDir() : SecurePaths.UserRoot, "driverpilot.log");
+                _path = Path.Combine(SafetyService.IsAdmin() ? SecurePaths.MachineDir() : SecurePaths.UserRoot, "driverrr.log");
             }
             catch
             {
-                _path = Path.Combine(Path.GetTempPath(), "driverpilot.log");
+                _path = Path.Combine(Path.GetTempPath(), "driverrr.log");
             }
             return _path;
         }

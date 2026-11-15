@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 public enum DeviceState { UpToDate, UpdateAvailable, Problem, Working, Installed, Failed }
 

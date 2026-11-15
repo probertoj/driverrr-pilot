@@ -1,11 +1,11 @@
 // Pruebas de las comprobaciones de seguridad y del análisis del Catálogo.
-// Uso:  DriverPilot.Tests.exe [carpeta con páginas reales del Catálogo]
+// Uso:  Driverrr.Tests.exe [carpeta con páginas reales del Catálogo]
 // No instala nada ni necesita administrador. Todo lo que crea vive en una carpeta temporal que borra al acabar.
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Security;
-using DriverPilot;
+using Driverrr;
 
 int passed = 0, failed = 0;
 
@@ -20,7 +20,7 @@ bool Throws<T>(Action a) where T : Exception
     try { a(); return false; } catch (T) { return true; } catch { return false; }
 }
 
-var tmp = Path.Combine(Path.GetTempPath(), "DriverPilotTests-" + Guid.NewGuid().ToString("N"));
+var tmp = Path.Combine(Path.GetTempPath(), "DriverrrTests-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(tmp);
 try
 {
@@ -165,27 +165,34 @@ try
             .SequenceEqual(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(Path.Combine(appDst, f))))));
     Check("no deja restos de una versión anterior", !File.Exists(Path.Combine(appDst, "fichero-de-version-anterior.txt")));
     Check("incluye el ejecutable y su configuración de arranque",
-        File.Exists(Path.Combine(appDst, "DriverPilot.exe")) && File.Exists(Path.Combine(appDst, "DriverPilot.runtimeconfig.json")) && File.Exists(Path.Combine(appDst, "DriverPilot.dll")));
+        File.Exists(Path.Combine(appDst, "Driverrr.exe")) && File.Exists(Path.Combine(appDst, "Driverrr.runtimeconfig.json")) && File.Exists(Path.Combine(appDst, "Driverrr.dll")));
     var linkDst = Path.Combine(tmp, "link-instalacion");
     Process.Start(new ProcessStartInfo("cmd.exe", $"/c mklink /J \"{linkDst}\" \"{Path.Combine(tmp, "real")}\"") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true })!.WaitForExit();
     Check("rechaza instalar sobre un enlace", Throws<IOException>(() => Installer.CopyApp(appSrc, linkDst)) && !Directory.EnumerateFileSystemEntries(Path.Combine(tmp, "real")).Any());
     if (Directory.Exists(linkDst)) Directory.Delete(linkDst);
-    var lnk = Path.Combine(tmp, "DriverPilot.lnk");
-    Installer.CreateShortcut(lnk, Path.Combine(appDst, "DriverPilot.exe"), appDst);
+    var lnk = Path.Combine(tmp, "Driverrr.lnk");
+    Installer.CreateShortcut(lnk, Path.Combine(appDst, "Driverrr.exe"), appDst);
     dynamic sh = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell")!)!;
     string lnkTarget = sh.CreateShortcut(lnk).TargetPath;
-    Check("el acceso directo apunta al ejecutable instalado", lnkTarget.Equals(Path.Combine(appDst, "DriverPilot.exe"), StringComparison.OrdinalIgnoreCase), lnkTarget.Replace(tmp, "<tmp>"));
-    Check("destino previsto: Archivos de programa", Installer.InstallDir.Equals(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DriverPilot"), StringComparison.OrdinalIgnoreCase), Installer.InstallDir);
+    Check("el acceso directo apunta al ejecutable instalado", lnkTarget.Equals(Path.Combine(appDst, "Driverrr.exe"), StringComparison.OrdinalIgnoreCase), lnkTarget.Replace(tmp, "<tmp>"));
+    Check("destino previsto: Archivos de programa", Installer.InstallDir.Equals(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Driverrr"), StringComparison.OrdinalIgnoreCase), Installer.InstallDir);
     Check("esta copia de pruebas no se considera instalada", !Installer.RunningInstalled);
     // Fichero único: aunque el .exe esté en una carpeta llena de cosas del usuario, solo se instala el .exe.
     var userFolder = Directory.CreateDirectory(Path.Combine(tmp, "descargas-del-usuario")).FullName;
     File.WriteAllText(Path.Combine(userFolder, "documento-privado.txt"), "no debe copiarse");
     Directory.CreateDirectory(Path.Combine(userFolder, "fotos"));
-    File.Copy(Path.Combine(appSrc, "DriverPilot.exe"), Path.Combine(userFolder, "DriverPilot-descargado.exe"));
+    File.Copy(Path.Combine(appSrc, "Driverrr.exe"), Path.Combine(userFolder, "Driverrr-descargado.exe"));
     var oneDst = Path.Combine(tmp, "instalada-fichero-unico");
-    Installer.CopySingleFile(Path.Combine(userFolder, "DriverPilot-descargado.exe"), oneDst);
+    Installer.CopySingleFile(Path.Combine(userFolder, "Driverrr-descargado.exe"), oneDst);
     Check("fichero único: instala solo el ejecutable, nada más de la carpeta del usuario",
-        Rel(oneDst).SequenceEqual(new[] { "DriverPilot.exe" }), string.Join(", ", Rel(oneDst)));
+        Rel(oneDst).SequenceEqual(new[] { "Driverrr.exe" }), string.Join(", ", Rel(oneDst)));
+
+    Console.WriteLine("== Cambio de nombre de la app: no se pierden los datos anteriores");
+    Check("la zona de máquina apunta a una carpeta existente o a la nueva",
+        Directory.Exists(SecurePaths.MachineRoot) || SecurePaths.MachineRoot.EndsWith(@"\Driverrr", StringComparison.OrdinalIgnoreCase), SecurePaths.MachineRoot);
+    Check("sin elevar no se mueve ni se crea nada en ProgramData",
+        SafetyService.IsAdmin() || !Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Driverrr"))
+        || !Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), SecurePaths.LegacyName)));
 
     Console.WriteLine("== Restaurar: lectura de las copias");
     Check("nombre de carpeta de copia", RestoreService.ParseFolderName("DTS APO4x Service (oem171.inf)") == ("DTS APO4x Service", "oem171.inf"));

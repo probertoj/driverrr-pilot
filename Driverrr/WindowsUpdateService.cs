@@ -1,4 +1,4 @@
-namespace DriverPilot;
+namespace Driverrr;
 
 public record InstallOutcome(bool Success, bool RebootRequired, string? Error);
 
@@ -22,7 +22,7 @@ public class WindowsUpdateService
                 var type = Type.GetTypeFromProgID("Microsoft.Update.Session")
                            ?? throw new InvalidOperationException("El servicio de Windows Update no está disponible.");
                 _session = Activator.CreateInstance(type)!;
-                _session!.ClientApplicationID = "DriverPilot";
+                _session!.ClientApplicationID = "Driverrr";
             }
             return _session!;
         }

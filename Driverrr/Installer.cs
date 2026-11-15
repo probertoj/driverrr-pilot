@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Win32;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 /// <summary>
 /// Instala la app en «Archivos de programa», donde solo un administrador puede modificarla.
@@ -12,7 +12,7 @@ namespace DriverPilot;
 /// </summary>
 public static class Installer
 {
-    const string AppName = "DriverPilot";
+    const string AppName = "Driverrr";
     const string UninstallKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + AppName;
 
     public static string InstallDir =>
@@ -45,13 +45,14 @@ public static class Installer
             if (!SafetyService.IsAdmin()) return "Hacen falta permisos de administrador.";
             if (RunningInstalled) return "Esta copia ya es la instalada.";
             if (OtherInstancesFrom(InstallDir).Any())
-                return "DriverPilot instalado está abierto. Ciérralo y vuelve a intentarlo.";
+                return "Driverrr instalado está abierto. Ciérralo y vuelve a intentarlo.";
 
             Log.Write($"=== Instalación de la app -> {InstallDir} (versión {ThisVersion}, fichero único: {IsSingleFile}) ===");
             if (IsSingleFile) CopySingleFile(Environment.ProcessPath!, InstallDir);
             else CopyApp(RunningDir, InstallDir);
             CreateShortcut(ShortcutPath, InstalledExe, InstallDir);
             Register();
+            RemoveLegacyInstall();
             Log.Write("Instalación de la app: terminada");
             return null;
         }
@@ -59,6 +60,41 @@ public static class Installer
         {
             Log.Write("Instalación de la app: error " + ex.Message);
             return ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// Retira la instalación hecha con el nombre antiguo de la app, para que no queden dos.
+    /// Solo toca lo que esa instalación registró en su carpeta fija de «Archivos de programa».
+    /// </summary>
+    static void RemoveLegacyInstall()
+    {
+        const string legacy = SecurePaths.LegacyName;
+        try
+        {
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), legacy);
+            var key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + legacy;
+            using (var reg = Registry.LocalMachine.OpenSubKey(key))
+            {
+                // Sin su entrada de registro apuntando a esa carpeta no se da por nuestra.
+                if (reg?.GetValue("InstallLocation") is not string location ||
+                    !location.TrimEnd('\\').Equals(dir, StringComparison.OrdinalIgnoreCase)) return;
+            }
+            if (OtherInstancesFrom(dir, legacy).Any())
+            {
+                Log.Write("Instalación antigua abierta: no se retira");
+                return;
+            }
+
+            var lnk = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), legacy + ".lnk");
+            if (File.Exists(lnk)) File.Delete(lnk);
+            Registry.LocalMachine.DeleteSubKeyTree(key, throwOnMissingSubKey: false);
+            if (Directory.Exists(dir) && !SecurePaths.IsReparsePoint(dir)) Directory.Delete(dir, true);
+            Log.Write("Instalación antigua (" + legacy + ") retirada");
+        }
+        catch (Exception ex)
+        {
+            Log.Write("No se pudo retirar la instalación antigua: " + ex.Message);
         }
     }
 
@@ -142,7 +178,7 @@ public static class Installer
         {
             if (!SafetyService.IsAdmin()) return "Hacen falta permisos de administrador.";
             if (OtherInstancesFrom(InstallDir).Any(p => p.Id != Environment.ProcessId))
-                return "Hay otra ventana de DriverPilot abierta. Ciérrala y vuelve a intentarlo.";
+                return "Hay otra ventana de Driverrr abierta. Ciérrala y vuelve a intentarlo.";
 
             Log.Write("=== Desinstalación de la app ===");
             if (File.Exists(ShortcutPath)) File.Delete(ShortcutPath);
@@ -166,9 +202,9 @@ public static class Installer
         }
     }
 
-    static IEnumerable<Process> OtherInstancesFrom(string dir)
+    static IEnumerable<Process> OtherInstancesFrom(string dir, string processName = AppName)
     {
-        foreach (var p in Process.GetProcessesByName(AppName))
+        foreach (var p in Process.GetProcessesByName(processName))
         {
             string? path = null;
             try { path = p.MainModule?.FileName; } catch { }

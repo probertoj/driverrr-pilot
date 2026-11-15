@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 public partial class App : Application
 {
@@ -11,11 +11,11 @@ public partial class App : Application
         base.OnStartup(e);
 
         // Para equipos donde la ventana sale en blanco por un problema del driver gráfico:
-        //   DriverPilot.exe --sin-aceleracion
+        //   Driverrr.exe --sin-aceleracion
         if (e.Args.Contains("--sin-aceleracion"))
             System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
 
-        // Modo sin ventana:  DriverPilot.exe --scan salida.json   (solo lee, no instala nada)
+        // Modo sin ventana:  Driverrr.exe --scan salida.json   (solo lee, no instala nada)
         int i = Array.IndexOf(e.Args, "--scan");
         if (i >= 0 && i + 1 < e.Args.Length)
         {
@@ -28,9 +28,9 @@ public partial class App : Application
         {
             var error = Installer.Install();
             MessageBox.Show(error == null
-                    ? "DriverPilot se ha instalado.\n\nÁbrelo desde el menú Inicio (busca «DriverPilot»). El fichero que descargaste ya no hace falta para usarlo."
-                    : "No se pudo instalar DriverPilot:\n\n" + error,
-                "DriverPilot", MessageBoxButton.OK, error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                    ? "Driverrr se ha instalado.\n\nÁbrelo desde el menú Inicio (busca «Driverrr»). El fichero que descargaste ya no hace falta para usarlo."
+                    : "No se pudo instalar Driverrr:\n\n" + error,
+                "Driverrr", MessageBoxButton.OK, error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
             Shutdown(error == null ? 0 : 1);
             return;
         }
@@ -51,13 +51,13 @@ public partial class App : Application
                 return;
             }
             var ask = MessageBox.Show(
-                "¿Desinstalar DriverPilot?\n\nSe conservan las copias de seguridad de drivers en C:\\ProgramData\\DriverPilot.",
-                "DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "¿Desinstalar Driverrr?\n\nSe conservan las copias de seguridad de drivers en C:\\ProgramData\\Driverrr.",
+                "Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (ask == MessageBoxResult.Yes)
             {
                 var error = Installer.Uninstall();
-                MessageBox.Show(error == null ? "DriverPilot se ha desinstalado." : "No se pudo desinstalar:\n\n" + error,
-                    "DriverPilot", MessageBoxButton.OK, error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                MessageBox.Show(error == null ? "Driverrr se ha desinstalado." : "No se pudo desinstalar:\n\n" + error,
+                    "Driverrr", MessageBoxButton.OK, error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
             }
             Shutdown();
             return;

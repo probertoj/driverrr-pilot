@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="DriverPilot/Assets/logo.png" width="120" alt="Logo de DriverPilot">
+  <img src="Driverrr/Assets/logo.png" width="120" alt="Logo de Driverrr">
 </p>
 
-<h1 align="center">DriverPilot</h1>
+<h1 align="center">Driverrr</h1>
 
 <p align="center">Mantiene al día los drivers de tu PC con Windows, gratis y solo con fuentes oficiales de Microsoft.</p>
 
 ---
 
 > **Estado: versión temprana.** Funciona, pero se ha probado en un solo equipo. Actualizar drivers siempre
-> tiene riesgo; DriverPilot crea un punto de restauración y una copia antes de cada cambio, pero úsalo bajo tu
+> tiene riesgo; Driverrr crea un punto de restauración y una copia antes de cada cambio, pero úsalo bajo tu
 > responsabilidad y empieza por un driver poco crítico.
 
 ## Qué hace
@@ -26,7 +26,7 @@ No usa bases de datos de terceros ni descarga nada que no venga de servidores de
 
 ## Descarga y uso
 
-1. Descarga `DriverPilot.exe` desde la página de [Releases](../../releases).
+1. Descarga `Driverrr.exe` desde la página de [Releases](../../releases).
 2. Ábrelo. No necesita instalar nada más: lleva dentro todo lo necesario.
 3. Pulsa **Escanear**.
 4. (Recomendado) Pulsa **Instalar en este equipo**, abajo a la izquierda. Lo copia a `Archivos de programa`,
@@ -49,7 +49,7 @@ Un driver solo se ofrece si:
 - en el caso del Catálogo, corresponde al identificador de hardware de tu dispositivo.
 
 Aun así, la última palabra la tiene Windows: si considera que tu driver actual es mejor, no lo cambia, y
-DriverPilot te lo dice en lugar de dar la actualización por hecha.
+Driverrr te lo dice en lugar de dar la actualización por hecha.
 
 ## Seguridad
 
@@ -61,7 +61,7 @@ permisos no pueda aprovecharse de ella:
 - **Exige firma de Microsoft** (certificación WHQL) en el paquete, además de la validación del propio Windows.
 - **Comprueba que el paquete es para tu dispositivo exacto** y tu arquitectura antes de instalarlo.
 - **Vuelve a consultar el Catálogo en vivo** antes de instalar: lo guardado en caché no se da por bueno.
-- **Trabaja en carpetas protegidas** (`C:\ProgramData\DriverPilot`), donde solo un administrador puede
+- **Trabaja en carpetas protegidas** (`C:\ProgramData\Driverrr`), donde solo un administrador puede
   escribir, y rechaza enlaces y carpetas creadas por otros programas.
 - **No acepta licencias en tu nombre** y **no instala sin copia** del driver anterior.
 - Llama a las herramientas de Windows por su ruta completa en `System32`.
@@ -71,14 +71,14 @@ Por eso se recomienda el paso «Instalar en este equipo».
 
 ## Privacidad
 
-DriverPilot no tiene servidor propio, cuentas ni telemetría. Las únicas conexiones que hace son a:
+Driverrr no tiene servidor propio, cuentas ni telemetría. Las únicas conexiones que hace son a:
 
 - el servicio de Windows Update de tu equipo;
 - `catalog.update.microsoft.com`, a la que envía identificadores de hardware genéricos (por ejemplo
   `PCI\VEN_10EC&DEV_8168`, que identifica un modelo de chip, no tu equipo).
 
-Guarda en tu PC una caché de consultas (`%LocalAppData%\DriverPilot`) y un registro de lo que instala
-(`C:\ProgramData\DriverPilot`). Nada de eso sale de tu equipo.
+Guarda en tu PC una caché de consultas (`%LocalAppData%\Driverrr`) y un registro de lo que instala
+(`C:\ProgramData\Driverrr`). Nada de eso sale de tu equipo.
 
 ## Limitaciones conocidas
 
@@ -98,12 +98,12 @@ Guarda en tu PC una caché de consultas (`%LocalAppData%\DriverPilot`) y un regi
 Suele ser un problema del driver gráfico del equipo, no de la app. Ábrela dibujando sin la tarjeta gráfica:
 
 ```bash
-DriverPilot.exe --sin-aceleracion
+Driverrr.exe --sin-aceleracion
 ```
 
 ## Volver atrás
 
-En la página **Restaurar** aparecen los drivers que has cambiado con DriverPilot. Al restaurar, la app retira
+En la página **Restaurar** aparecen los drivers que has cambiado con Driverrr. Al restaurar, la app retira
 el driver nuevo para que Windows recupere el anterior (y lo repone desde la copia si ya no estuviera).
 Reinstalar el antiguo sin más no funciona, porque Windows elige siempre el más reciente.
 
@@ -115,24 +115,24 @@ anterior» en el Administrador de dispositivos.
 Necesitas el [SDK de .NET 9](https://dotnet.microsoft.com/download).
 
 ```bash
-dotnet build DriverPilot/DriverPilot.csproj -c Release
+dotnet build Driverrr/Driverrr.csproj -c Release
 ```
 
 Para generar el ejecutable único que se distribuye:
 
 ```bash
-dotnet publish DriverPilot/DriverPilot.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o dist
+dotnet publish Driverrr/Driverrr.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o dist
 ```
 
 Pruebas (no instalan nada ni necesitan administrador):
 
 ```bash
-dotnet run --project DriverPilot.Tests -c Release
+dotnet run --project Driverrr.Tests -c Release
 ```
 
 ## Licencia
 
 [MIT](LICENSE). Sin garantía de ningún tipo.
 
-DriverPilot no está afiliado a Microsoft ni a ningún fabricante de hardware. Windows, Windows Update y
+Driverrr no está afiliado a Microsoft ni a ningún fabricante de hardware. Windows, Windows Update y
 Microsoft Update Catalog son marcas de Microsoft Corporation.

@@ -5,7 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Data;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 public partial class MainWindow : Window
 {
@@ -71,7 +71,7 @@ public partial class MainWindow : Window
             var items = await Task.Run(RestoreService.List);
             RestoreList.ItemsSource = items;
             RestoreEmpty.Visibility = Vis(items.Count == 0);
-            RestoreEmpty.Text = "No hay nada que restaurar.\nAquí aparecerán los drivers que actualices con DriverPilot.";
+            RestoreEmpty.Text = "No hay nada que restaurar.\nAquí aparecerán los drivers que actualices con Driverrr.";
         }
         catch (Exception ex)
         {
@@ -88,8 +88,8 @@ public partial class MainWindow : Window
         if (!SafetyService.IsAdmin())
         {
             var ask = MessageBox.Show(this,
-                "Restaurar un driver requiere permisos de administrador.\n\n¿Reiniciar DriverPilot como administrador? Se abrirá de nuevo en esta página.",
-                "DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "Restaurar un driver requiere permisos de administrador.\n\n¿Reiniciar Driverrr como administrador? Se abrirá de nuevo en esta página.",
+                "Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (ask == MessageBoxResult.Yes) RelaunchElevated("--restore");
             return;
         }
@@ -106,13 +106,13 @@ public partial class MainWindow : Window
         try
         {
             Log.Write($"=== Restauración, admin={SafetyService.IsAdmin()} ===");
-            var rpError = await Task.Run(() => SafetyService.CreateRestorePoint("DriverPilot: antes de restaurar un driver"));
+            var rpError = await Task.Run(() => SafetyService.CreateRestorePoint("Driverrr: antes de restaurar un driver"));
             Log.Write("Punto de restauración: " + (rpError ?? "creado"));
             if (rpError != null)
             {
                 var go = MessageBox.Show(this,
                     $"No se pudo crear el punto de restauración: {rpError}\n\n¿Continuar de todos modos?",
-                    "DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    "Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (go != MessageBoxResult.Yes) return;
             }
 
@@ -130,7 +130,7 @@ public partial class MainWindow : Window
                 : outcome.Error;
             StatusText.Text = outcome.Success ? "Restauración terminada. Vuelve a escanear para ver el estado actual." : "No se pudo restaurar.";
             if (outcome.RebootRequired)
-                MessageBox.Show(this, "Reinicia el equipo para terminar de restaurar el driver.", "DriverPilot",
+                MessageBox.Show(this, "Reinicia el equipo para terminar de restaurar el driver.", "Driverrr",
                     MessageBoxButton.OK, MessageBoxImage.Information);
         }
         finally
@@ -231,8 +231,8 @@ public partial class MainWindow : Window
         if (!SafetyService.IsAdmin())
         {
             var ask = MessageBox.Show(this,
-                "Instalar drivers requiere permisos de administrador.\n\n¿Reiniciar DriverPilot como administrador? Se volverá a escanear automáticamente.",
-                "DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                "Instalar drivers requiere permisos de administrador.\n\n¿Reiniciar Driverrr como administrador? Se volverá a escanear automáticamente.",
+                "Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (ask == MessageBoxResult.Yes) RelaunchElevated();
             return;
         }
@@ -247,13 +247,13 @@ public partial class MainWindow : Window
         try
         {
             Log.Write($"=== Instalación: {items.Count} fila(s), admin={SafetyService.IsAdmin()} ===");
-            var rpError = await Task.Run(() => SafetyService.CreateRestorePoint("DriverPilot: antes de actualizar drivers"));
+            var rpError = await Task.Run(() => SafetyService.CreateRestorePoint("Driverrr: antes de actualizar drivers"));
             Log.Write("Punto de restauración: " + (rpError ?? "creado"));
             if (rpError != null)
             {
                 var go = MessageBox.Show(this,
                     $"No se pudo crear el punto de restauración: {rpError}\n\n¿Continuar de todos modos?",
-                    "DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    "Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (go != MessageBoxResult.Yes) return;
             }
 
@@ -267,7 +267,7 @@ public partial class MainWindow : Window
             {
                 Log.Write("Carpeta de copias rechazada: " + ex.Message);
                 MessageBox.Show(this, "No se puede preparar la carpeta de copias de seguridad:\n\n" + ex.Message +
-                                      "\n\nNo se ha instalado nada.", "DriverPilot", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                      "\n\nNo se ha instalado nada.", "Driverrr", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             int ok = 0, failed = 0;
@@ -324,7 +324,7 @@ public partial class MainWindow : Window
                               + (Directory.EnumerateFileSystemEntries(backupFolder).Any() ? $"  Copia de seguridad en {backupFolder}" : "");
             try { if (!Directory.EnumerateFileSystemEntries(backupFolder).Any()) Directory.Delete(backupFolder); } catch { }
             if (reboot)
-                MessageBox.Show(this, "Reinicia el equipo para terminar de aplicar los drivers.", "DriverPilot",
+                MessageBox.Show(this, "Reinicia el equipo para terminar de aplicar los drivers.", "Driverrr",
                     MessageBoxButton.OK, MessageBoxImage.Information);
         }
         finally
@@ -364,10 +364,10 @@ public partial class MainWindow : Window
     {
         if (_busy) return;
         var ask = MessageBox.Show(this,
-            $"Se va a instalar DriverPilot en:\n\n  {Installer.InstallDir}\n\n" +
+            $"Se va a instalar Driverrr en:\n\n  {Installer.InstallDir}\n\n" +
             "Ahí solo un administrador puede modificarlo. Se creará un acceso directo en el menú Inicio y podrás desinstalarlo desde Configuración > Aplicaciones.\n\n" +
             "Windows pedirá permisos de administrador y esta ventana se cerrará. ¿Continuar?",
-            "Instalar DriverPilot", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            "Instalar Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (ask == MessageBoxResult.Yes) RelaunchElevated("--install");
     }
 

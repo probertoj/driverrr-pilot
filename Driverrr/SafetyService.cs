@@ -4,7 +4,7 @@ using System.Management;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 
-namespace DriverPilot;
+namespace Driverrr;
 
 public enum BackupResult { NotNeeded, Saved, Failed }
 
