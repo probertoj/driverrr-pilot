@@ -1,0 +1,259 @@
+<Window x:Class="DriverPilot.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DriverPilot" Icon="Assets/logo.ico" Width="1040" Height="700" MinWidth="820" MinHeight="520"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource Bg}"
+        FontFamily="Segoe UI" FontSize="13.5" Foreground="{StaticResource Ink}">
+    <Window.Resources>
+        <!-- Fila de dispositivo, compartida por las dos listas -->
+        <DataTemplate x:Key="DeviceRow">
+            <Border BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="20,13">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="{Binding StateBrush}" CornerRadius="3" Width="4" HorizontalAlignment="Left"/>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="14.5" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding DetailText}" Foreground="{StaticResource Muted}" Margin="0,3,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding NewVersionText}" Foreground="{StaticResource Go}" FontWeight="SemiBold"
+                                   Visibility="{Binding AvailableVisibility}" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Visibility="{Binding VendorVisibility}" Margin="0,5,0,0" FontSize="12">
+                            <Hyperlink Click="Vendor_Click" Foreground="{StaticResource Accent}">
+                                Buscar la última versión en la web del fabricante
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0,0,0">
+                        <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" FontWeight="SemiBold"
+                                   HorizontalAlignment="Right" MaxWidth="250" TextWrapping="Wrap" TextAlignment="Right"/>
+                        <Button Content="Actualizar" Style="{StaticResource GhostButton}" Margin="0,7,0,0"
+                                HorizontalAlignment="Right" Visibility="{Binding UpdateVisibility}" Click="UpdateOne_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Cabecera de categoría -->
+        <Style x:Key="CategoryGroup" TargetType="GroupItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupItem">
+                        <StackPanel>
+                            <Border Background="#F7F9FC" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="20,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12.5" Foreground="#3B4660"/>
+                                    <TextBlock Text="{Binding ItemCount, StringFormat='   {0}'}" FontSize="12.5"
+                                               Foreground="{StaticResource Muted}"/>
+                                </StackPanel>
+                            </Border>
+                            <ItemsPresenter/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ===== Barra lateral ===== -->
+        <Border Background="{StaticResource Side}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,24,16,22">
+                    <Image Source="Assets/logo.png" Width="40" Height="40" RenderOptions.BitmapScalingMode="HighQuality"
+                           VerticalAlignment="Center"/>
+                    <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="DriverPilot" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock Text="Drivers al día, sin líos" Foreground="{StaticResource SideText}" FontSize="11.5" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="20,0,20,20">
+                    <TextBlock x:Name="AdminText" Foreground="{StaticResource SideText}" FontSize="12" TextWrapping="Wrap"/>
+                    <TextBlock Margin="0,10,0,0" FontSize="12">
+                        <Hyperlink Click="OpenBackups_Click" Foreground="#8FB8FF">Abrir copias de seguridad</Hyperlink>
+                    </TextBlock>
+                    <Border x:Name="InstallBox" Background="#1C2740" CornerRadius="8" Padding="12,10" Margin="0,14,0,0"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock x:Name="InstallHint" Foreground="{StaticResource SideText}" FontSize="12" TextWrapping="Wrap"/>
+                            <TextBlock Margin="0,6,0,0" FontSize="12.5" FontWeight="SemiBold">
+                                <Hyperlink x:Name="InstallLink" Click="Install_Click" Foreground="#8FB8FF">Instalar en este equipo</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel>
+                    <RadioButton x:Name="NavHome" Style="{StaticResource NavItem}" GroupName="nav" Content="Escanear"
+                                 IsChecked="True" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavUpdates" Style="{StaticResource NavItem}" GroupName="nav" Checked="Nav_Checked">
+                        <DockPanel>
+                            <Border x:Name="UpdatesBadge" DockPanel.Dock="Right" Background="#F59E0B" CornerRadius="9"
+                                    Padding="7,1" Visibility="Collapsed" VerticalAlignment="Center">
+                                <TextBlock x:Name="UpdatesBadgeText" Foreground="White" FontSize="11.5" FontWeight="Bold"/>
+                            </Border>
+                            <TextBlock Text="Actualizaciones"/>
+                        </DockPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="NavDevices" Style="{StaticResource NavItem}" GroupName="nav"
+                                 Content="Todos los dispositivos" Checked="Nav_Checked"/>
+                    <RadioButton x:Name="NavRestore" Style="{StaticResource NavItem}" GroupName="nav"
+                                 Content="Restaurar" Checked="Nav_Checked"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ===== Contenido ===== -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Inicio -->
+            <Grid x:Name="HomePage">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Button x:Name="ScanButton" Style="{StaticResource ScanButton}" Content="Escanear" Click="Scan_Click"/>
+                    <TextBlock x:Name="HomeTitle" Text="Comprueba los drivers de tu equipo" FontSize="20" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Margin="0,28,0,0" TextAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="MachineText" Foreground="{StaticResource Muted}" HorizontalAlignment="Center"
+                               Margin="0,8,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="560"/>
+                    <TextBlock x:Name="LastScanText" Foreground="{StaticResource Muted}" HorizontalAlignment="Center"
+                               Margin="0,4,0,0" FontSize="12.5"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Actualizaciones -->
+            <Grid x:Name="UpdatesPage" Margin="28,26,28,0" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="UpdatesTitle" Text="Actualizaciones" FontSize="24" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="UpdatesSubtitle" Foreground="{StaticResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Text="Escanea el equipo para ver qué drivers se pueden actualizar."/>
+                    </StackPanel>
+                    <Button x:Name="UpdateAllButton" Grid.Column="1" Content="Actualizar todo" MinWidth="190" Padding="24,13"
+                            FontSize="15" Style="{StaticResource GoButton}" VerticalAlignment="Center" IsEnabled="False"
+                            Click="UpdateAll_Click"/>
+                </Grid>
+                <Border Grid.Row="1" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                        CornerRadius="12" ClipToBounds="True">
+                    <Grid>
+                        <StackPanel x:Name="UpdatesEmpty" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="30">
+                            <TextBlock x:Name="UpdatesEmptyIcon" Text="✓" FontSize="54" Foreground="{StaticResource Go}"
+                                       HorizontalAlignment="Center" Visibility="Collapsed"/>
+                            <TextBlock x:Name="UpdatesEmptyText" Text="Aún no hay resultados." FontSize="15"
+                                       Foreground="{StaticResource Muted}" TextAlignment="Center" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="UpdatesList" ItemTemplate="{StaticResource DeviceRow}">
+                                <ItemsControl.GroupStyle>
+                                    <GroupStyle ContainerStyle="{StaticResource CategoryGroup}"/>
+                                </ItemsControl.GroupStyle>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Todos los dispositivos -->
+            <Grid x:Name="DevicesPage" Margin="28,26,28,0" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Margin="0,0,0,18">
+                    <TextBlock Text="Todos los dispositivos" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock x:Name="DevicesSubtitle" Foreground="{StaticResource Muted}" Margin="0,4,0,0"
+                               Text="Escanea el equipo para ver el inventario completo."/>
+                </StackPanel>
+                <Border Grid.Row="1" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                        CornerRadius="12" ClipToBounds="True">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="DevicesList" ItemTemplate="{StaticResource DeviceRow}">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle ContainerStyle="{StaticResource CategoryGroup}"/>
+                            </ItemsControl.GroupStyle>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Restaurar -->
+            <Grid x:Name="RestorePage" Margin="28,26,28,0" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Margin="0,0,0,18">
+                    <TextBlock Text="Restaurar" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock x:Name="RestoreSubtitle" Foreground="{StaticResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Text="Vuelve al driver anterior de un dispositivo que hayas actualizado con DriverPilot."/>
+                </StackPanel>
+                <Border Grid.Row="1" Background="{StaticResource Card}" BorderBrush="{StaticResource Line}" BorderThickness="1"
+                        CornerRadius="12" ClipToBounds="True">
+                    <Grid>
+                        <TextBlock x:Name="RestoreEmpty" Text="No hay nada que restaurar." FontSize="15" Margin="30"
+                                   Foreground="{StaticResource Muted}" TextAlignment="Center" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="RestoreList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="20,13">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding DeviceName}" FontWeight="SemiBold" FontSize="14.5"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding DetailText}" Foreground="{StaticResource Muted}"
+                                                               Margin="0,3,0,0"/>
+                                                    <TextBlock Text="{Binding TargetText}" Foreground="{StaticResource Accent}"
+                                                               FontWeight="SemiBold" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                                    <TextBlock Text="{Binding StateText}" FontWeight="SemiBold" MaxWidth="260"
+                                                               TextWrapping="Wrap" TextAlignment="Right" HorizontalAlignment="Right"/>
+                                                    <Button Content="Restaurar" Style="{StaticResource GhostButton}" Margin="0,7,0,0"
+                                                            HorizontalAlignment="Right" Visibility="{Binding ButtonVisibility}"
+                                                            Click="RestoreOne_Click"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Barra de estado -->
+            <StackPanel Grid.Row="1" Margin="28,14,28,16">
+                <ProgressBar x:Name="Progress" Height="4" Margin="0,0,0,8" IsIndeterminate="True" Visibility="Collapsed"
+                             Foreground="{StaticResource Accent}" BorderThickness="0" Background="{StaticResource Line}"/>
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource Muted}" TextWrapping="Wrap" FontSize="12.5"
+                           Text="Los drivers proceden de Windows Update: firmados y publicados por Microsoft."/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

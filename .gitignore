@@ -1,0 +1,22 @@
+# Salidas de compilación
+bin/
+obj/
+publish/
+dist/
+
+# Entorno de desarrollo
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Herramientas de asistencia
+.claude/
+
+# Datos locales que nunca deben subirse
+*.log
+*.json.bak
+catalog-cache.json
+scan*.json
+Backups/
