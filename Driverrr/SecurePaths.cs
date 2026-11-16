@@ -75,6 +75,26 @@ public static class SecurePaths
         return path;
     }
 
+    /// <summary>Borra carpetas de trabajo que hayan quedado de operaciones anteriores (más de una hora).</summary>
+    public static void PurgeWork()
+    {
+        try
+        {
+            var work = Path.Combine(MachineRoot, "Work");
+            if (!Directory.Exists(work) || IsReparsePoint(work)) return;
+            foreach (var dir in Directory.EnumerateDirectories(work))
+            {
+                try
+                {
+                    if (!IsReparsePoint(dir) && DateTime.Now - Directory.GetCreationTime(dir) > TimeSpan.FromHours(1))
+                        Directory.Delete(dir, true);
+                }
+                catch { }   // en uso: se borrará la próxima vez
+            }
+        }
+        catch { }
+    }
+
     /// <summary>Carpeta de trabajo nueva y vacía para una instalación.</summary>
     public static string NewWorkDir() => MachineDir("Work", Guid.NewGuid().ToString("N"));
 

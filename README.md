@@ -69,10 +69,27 @@ permisos no pueda aprovecharse de ella:
 Si la usas sin instalar, desde una carpeta como Descargas, cualquier programa podría modificar el ejecutable.
 Por eso se recomienda el paso «Instalar en este equipo».
 
+## Actualizaciones de la propia app
+
+Al abrirse, Driverrr consulta si hay una versión más nueva publicada en este repositorio y, si la hay, muestra
+un aviso. **Nunca se actualiza sola**: hace falta pulsar «Actualizar» y aceptar el permiso de administrador de
+Windows. No hay ningún servicio en segundo plano.
+
+Al aceptar, la app ya elevada vuelve a consultar GitHub, descarga la versión nueva a una carpeta protegida y,
+antes de ejecutarla, comprueba que viene de GitHub, que su huella SHA-256 coincide con la publicada y que el
+fichero es de verdad esa versión de Driverrr. No se ofrecen versiones anteriores a la instalada.
+
+Límite que conviene conocer: la huella detecta una descarga dañada, pero no protege si alguien toma el control
+de este repositorio y publica una versión maliciosa con su propia huella. Las versiones no van firmadas con una
+clave independiente. Si eso te preocupa, desactiva el aviso y actualiza a mano revisando el código.
+
 ## Privacidad
 
 Driverrr no tiene servidor propio, cuentas ni telemetría. Las únicas conexiones que hace son a:
 
+- `api.github.com`, al abrirse, para saber si hay una versión más nueva de la propia app. No envía ningún
+  dato tuyo, pero GitHub ve tu dirección IP como en cualquier visita. Se desactiva con la casilla «Avisar de
+  versiones nuevas»;
 - el servicio de Windows Update de tu equipo;
 - `catalog.update.microsoft.com`, a la que envía identificadores de hardware genéricos (por ejemplo
   `PCI\VEN_10EC&DEV_8168`, que identifica un modelo de chip, no tu equipo).

@@ -43,11 +43,72 @@ public partial class MainWindow : Window
             InstallLink.Inlines.Add(installed == null ? "Instalar en este equipo" : "Reinstalar con esta copia");
         }
 
+        CheckUpdatesBox.IsChecked = _settings.CheckForUpdates;
+        // Checked/Unchecked y no Click: así también se guarda al cambiarla con teclado o lector de pantalla.
+        CheckUpdatesBox.Checked += CheckUpdatesBox_Changed;
+        CheckUpdatesBox.Unchecked += CheckUpdatesBox_Changed;
+        Loaded += async (_, _) => await CheckForAppUpdateAsync();
+
         Loaded += async (_, _) =>
         {
             MachineText.Text = await Task.Run(DeviceScanner.MachineSummary);
             if (autoScan) await ScanAsync();
         };
+    }
+
+    // ---------- Versión nueva de la app ----------
+
+    readonly Settings _settings = Settings.Load();
+    UpdateInfo? _appUpdate;
+
+    /// <summary>Consulta GitHub y, si hay versión nueva, muestra el aviso. Nunca instala nada por su cuenta.</summary>
+    async Task CheckForAppUpdateAsync()
+    {
+        if (!_settings.CheckForUpdates) return;
+        try
+        {
+            _appUpdate = await Updater.CheckAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Write("No se pudo comprobar si hay versión nueva: " + ex.Message);   // sin red no es motivo para molestar
+            return;
+        }
+        if (_appUpdate == null) return;
+
+        UpdateBannerText.Text = Installer.RunningInstalled
+            ? $"Hay una versión nueva de Driverrr: {_appUpdate.Version} (tienes la {Installer.ThisVersion})."
+            : $"Hay una versión nueva de Driverrr: {_appUpdate.Version} (esta es la {Installer.ThisVersion}). Descárgala de la página del proyecto.";
+        UpdateAppButton.Content = Installer.RunningInstalled ? "Actualizar" : "Abrir la página";
+        UpdateBanner.Visibility = Visibility.Visible;
+    }
+
+    void UpdateApp_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy || _appUpdate == null) return;
+
+        // Una copia sin instalar no se sustituye a sí misma: se lleva al usuario a la descarga.
+        if (!Installer.RunningInstalled)
+        {
+            Process.Start(new ProcessStartInfo(Updater.ReleasesPage) { UseShellExecute = true });
+            return;
+        }
+
+        var ask = MessageBox.Show(this,
+            $"Se va a actualizar Driverrr de la versión {Installer.ThisVersion} a la {_appUpdate.Version}.\n\n" +
+            "Se descargará de GitHub, se comprobará su huella y sustituirá a la versión instalada. " +
+            "Windows pedirá permisos de administrador y esta ventana se cerrará. ¿Continuar?",
+            "Actualizar Driverrr", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (ask == MessageBoxResult.Yes) RelaunchElevated("--self-update");
+    }
+
+    void DismissUpdate_Click(object sender, RoutedEventArgs e) => UpdateBanner.Visibility = Visibility.Collapsed;
+
+    void CheckUpdatesBox_Changed(object sender, RoutedEventArgs e)
+    {
+        _settings.CheckForUpdates = CheckUpdatesBox.IsChecked == true;
+        _settings.Save();
+        if (!_settings.CheckForUpdates) UpdateBanner.Visibility = Visibility.Collapsed;
     }
 
     // ---------- Navegación ----------

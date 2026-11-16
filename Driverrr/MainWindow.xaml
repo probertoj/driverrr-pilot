@@ -94,6 +94,9 @@
                     <TextBlock Margin="0,10,0,0" FontSize="12">
                         <Hyperlink Click="OpenBackups_Click" Foreground="#8FB8FF">Abrir copias de seguridad</Hyperlink>
                     </TextBlock>
+                    <CheckBox x:Name="CheckUpdatesBox" Content="Avisar de versiones nuevas" Margin="0,10,0,0" FontSize="12"
+                              Foreground="{StaticResource SideText}"
+                              ToolTip="Al abrir, consulta en GitHub si hay una versión más nueva de Driverrr. Nunca se actualiza sin tu permiso."/>
                     <Border x:Name="InstallBox" Background="#1C2740" CornerRadius="8" Padding="12,10" Margin="0,14,0,0"
                             Visibility="Collapsed">
                         <StackPanel>
@@ -128,12 +131,27 @@
         <!-- ===== Contenido ===== -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- Aviso de versión nueva de la app -->
+            <Border x:Name="UpdateBanner" Background="#EAF2FF" BorderBrush="#BBD3FF" BorderThickness="0,0,0,1"
+                    Padding="28,11" Visibility="Collapsed">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="UpdateAppButton" Content="Actualizar" Style="{StaticResource PrimaryButton}"
+                                Padding="16,7" Click="UpdateApp_Click"/>
+                        <Button x:Name="DismissUpdateButton" Content="Ahora no" Style="{StaticResource GhostButton}"
+                                Margin="8,0,0,0" Click="DismissUpdate_Click"/>
+                    </StackPanel>
+                    <TextBlock x:Name="UpdateBannerText" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0"/>
+                </DockPanel>
+            </Border>
+
             <!-- Inicio -->
-            <Grid x:Name="HomePage">
+            <Grid x:Name="HomePage" Grid.Row="1">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Button x:Name="ScanButton" Style="{StaticResource ScanButton}" Content="Escanear" Click="Scan_Click"/>
                     <TextBlock x:Name="HomeTitle" Text="Comprueba los drivers de tu equipo" FontSize="20" FontWeight="SemiBold"
@@ -146,7 +164,7 @@
             </Grid>
 
             <!-- Actualizaciones -->
-            <Grid x:Name="UpdatesPage" Margin="28,26,28,0" Visibility="Collapsed">
+            <Grid x:Name="UpdatesPage" Grid.Row="1" Margin="28,26,28,0" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -186,7 +204,7 @@
             </Grid>
 
             <!-- Todos los dispositivos -->
-            <Grid x:Name="DevicesPage" Margin="28,26,28,0" Visibility="Collapsed">
+            <Grid x:Name="DevicesPage" Grid.Row="1" Margin="28,26,28,0" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -209,7 +227,7 @@
             </Grid>
 
             <!-- Restaurar -->
-            <Grid x:Name="RestorePage" Margin="28,26,28,0" Visibility="Collapsed">
+            <Grid x:Name="RestorePage" Grid.Row="1" Margin="28,26,28,0" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -261,7 +279,7 @@
             </Grid>
 
             <!-- Barra de estado -->
-            <StackPanel Grid.Row="1" Margin="28,14,28,16">
+            <StackPanel Grid.Row="2" Margin="28,14,28,16">
                 <ProgressBar x:Name="Progress" Height="4" Margin="0,0,0,8" IsIndeterminate="True" Visibility="Collapsed"
                              Foreground="{StaticResource Accent}" BorderThickness="0" Background="{StaticResource Line}"/>
                 <TextBlock x:Name="StatusText" Foreground="{StaticResource Muted}" TextWrapping="Wrap" FontSize="12.5"

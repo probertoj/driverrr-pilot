@@ -187,6 +187,57 @@ try
     Check("fichero único: instala solo el ejecutable, nada más de la carpeta del usuario",
         Rel(oneDst).SequenceEqual(new[] { "Driverrr.exe" }), string.Join(", ", Rel(oneDst)));
 
+    Console.WriteLine("== Actualizador de la app");
+    const string dl = "https://github.com/probertoj/driverrr-pilot/releases/download/";
+    string Release(string tag, string exeUrl, string sumsUrl, bool draft = false, bool pre = false) =>
+        "{\"tag_name\":\"" + tag + "\",\"draft\":" + (draft ? "true" : "false") + ",\"prerelease\":" + (pre ? "true" : "false") +
+        ",\"assets\":[{\"name\":\"Driverrr.exe\",\"browser_download_url\":\"" + exeUrl + "\"},{\"name\":\"SHA256SUMS.txt\",\"browser_download_url\":\"" + sumsUrl + "\"}]}";
+    var v1 = new Version("1.0.0");
+    var good = Updater.ParseLatest(Release("v1.2.0", dl + "v1.2.0/Driverrr.exe", dl + "v1.2.0/SHA256SUMS.txt"), v1);
+    Check("detecta una versión más nueva", good?.Version == new Version("1.2.0"));
+    Check("misma versión: no hay actualización", Updater.ParseLatest(Release("v1.0.0", dl + "v1.0.0/Driverrr.exe", dl + "v1.0.0/SHA256SUMS.txt"), v1) == null);
+    Check("versión más antigua: no se ofrece (no hay vuelta atrás forzada)", Updater.ParseLatest(Release("v0.9.0", dl + "v0.9.0/Driverrr.exe", dl + "v0.9.0/SHA256SUMS.txt"), v1) == null);
+    Check("ignora borradores y versiones preliminares",
+        Updater.ParseLatest(Release("v2.0.0", dl + "v2.0.0/Driverrr.exe", dl + "v2.0.0/SHA256SUMS.txt", draft: true), v1) == null &&
+        Updater.ParseLatest(Release("v2.0.0", dl + "v2.0.0/Driverrr.exe", dl + "v2.0.0/SHA256SUMS.txt", pre: true), v1) == null);
+    Check("rechaza un ejecutable alojado fuera del repositorio",
+        Updater.ParseLatest(Release("v2.0.0", "https://evil.example/Driverrr.exe", dl + "v2.0.0/SHA256SUMS.txt"), v1) == null);
+    Check("rechaza un ejecutable de otro repositorio de GitHub",
+        Updater.ParseLatest(Release("v2.0.0", "https://github.com/otro/repo/releases/download/v2.0.0/Driverrr.exe", dl + "v2.0.0/SHA256SUMS.txt"), v1) == null);
+    Check("rechaza enlaces de otra versión distinta de la anunciada",
+        Updater.ParseLatest(Release("v2.0.0", dl + "v1.5.0/Driverrr.exe", dl + "v2.0.0/SHA256SUMS.txt"), v1) == null);
+    Check("rechaza etiquetas que no son una versión", Updater.ParseLatest(Release("ultima", dl + "ultima/Driverrr.exe", dl + "ultima/SHA256SUMS.txt"), v1) == null);
+    Check("rechaza una release sin huella", Updater.ParseLatest("{\"tag_name\":\"v2.0.0\",\"assets\":[{\"name\":\"Driverrr.exe\",\"browser_download_url\":\"" + dl + "v2.0.0/Driverrr.exe\"}]}", v1) == null);
+    Check("origen: acepta github.com y sus servidores de ficheros",
+        Updater.IsTrustedGitHubUri("https://github.com/a/b") && Updater.IsTrustedGitHubUri("https://objects.githubusercontent.com/x") && Updater.IsTrustedGitHubUri("https://release-assets.githubusercontent.com/x"));
+    Check("origen: rechaza HTTP, dominios parecidos y usuario@host",
+        !Updater.IsTrustedGitHubUri("http://github.com/a") && !Updater.IsTrustedGitHubUri("https://github.com.evil.example/a") &&
+        !Updater.IsTrustedGitHubUri("https://evilgithubusercontent.com/a") && !Updater.IsTrustedGitHubUri("https://github.com@evil.example/a") &&
+        !Updater.IsTrustedGitHubUri("https://notgithub.com/a"));
+    var h64 = new string('a', 64);
+    Check("huella: la lee del formato publicado", Updater.ParseSums(h64 + "  Driverrr.exe\n", "Driverrr.exe") == h64);
+    Check("huella: no confunde otro fichero ni una huella corta",
+        Updater.ParseSums(h64 + "  Otro.exe\n", "Driverrr.exe") == null && Updater.ParseSums("abc123  Driverrr.exe", "Driverrr.exe") == null);
+    try
+    {
+        Check("en vivo: con la versión actual no ofrece nada más antiguo", (await Updater.CheckAsync(new Version("99.0.0"))) == null);
+        var live = await Updater.CheckAsync(new Version("0.1.0"));
+        Check("en vivo: GitHub anuncia una versión posterior a la 0.1.0", live != null, live?.Version.ToString() ?? "");
+        if (live != null)
+        {
+            var dlDir = Directory.CreateDirectory(Path.Combine(tmp, "actualizacion")).FullName;
+            var got = await Updater.DownloadVerifiedAsync(live, dlDir);
+            Check("en vivo: descarga la versión publicada y supera huella, producto y versión",
+                File.Exists(got) && FileVersionInfo.GetVersionInfo(got).ProductName == "Driverrr", $"{new FileInfo(got).Length / 1024 / 1024} MB");
+            var wrong = live with { Version = new Version("98.0.0") };
+            var dlDir2 = Directory.CreateDirectory(Path.Combine(tmp, "actualizacion-falsa")).FullName;
+            bool rejected = false;
+            try { await Updater.DownloadVerifiedAsync(wrong, dlDir2); } catch (InvalidOperationException) { rejected = true; }
+            Check("en vivo: rechaza un fichero que no es la versión anunciada", rejected);
+        }
+    }
+    catch (Exception ex) { Console.WriteLine("  (omitido: GitHub no disponible ahora: " + ex.Message + ")"); }
+
     Console.WriteLine("== Cambio de nombre de la app: no se pierden los datos anteriores");
     Check("la zona de máquina apunta a una carpeta existente o a la nueva",
         Directory.Exists(SecurePaths.MachineRoot) || SecurePaths.MachineRoot.EndsWith(@"\Driverrr", StringComparison.OrdinalIgnoreCase), SecurePaths.MachineRoot);

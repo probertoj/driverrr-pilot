@@ -6,7 +6,7 @@ namespace Driverrr;
 
 public partial class App : Application
 {
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -23,12 +23,45 @@ public partial class App : Application
             return;
         }
 
+        // Actualización de la app instalada: se llega aquí ya elevado, tras aceptar el aviso en la ventana.
+        if (e.Args.Contains("--self-update"))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var text = new System.Windows.Controls.TextBlock { Text = "Preparando la actualización…", Margin = new Thickness(0, 0, 0, 12), TextWrapping = TextWrapping.Wrap };
+            var panel = new System.Windows.Controls.StackPanel { Margin = new Thickness(22) };
+            panel.Children.Add(text);
+            panel.Children.Add(new System.Windows.Controls.ProgressBar { IsIndeterminate = true, Height = 6 });
+            var progress = new Window
+            {
+                Title = "Driverrr", Width = 400, SizeToContent = SizeToContent.Height, Content = panel,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen, ResizeMode = ResizeMode.NoResize
+            };
+            progress.Show();
+            var updateError = await Updater.SelfUpdateAsync(msg => Dispatcher.Invoke(() => text.Text = msg));
+            progress.Close();
+            if (updateError != null)
+                MessageBox.Show("No se pudo actualizar Driverrr:\n\n" + updateError + "\n\nNo se ha cambiado nada.",
+                    "Driverrr", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Shutdown(updateError == null ? 0 : 1);   // al cerrarse, el instalador de la versión nueva sustituye a esta
+            return;
+        }
+
         // Instalación y desinstalación: se llega aquí ya elevado, tras confirmar en la ventana o desde Windows.
         if (e.Args.Contains("--install"))
         {
+            // Si lo lanza el actualizador, espera a que la versión anterior se cierre para poder sustituirla.
+            int w = Array.IndexOf(e.Args, "--wait-pid");
+            bool isUpdate = w >= 0;
+            if (isUpdate && w + 1 < e.Args.Length && int.TryParse(e.Args[w + 1], out var pid))
+            {
+                try { System.Diagnostics.Process.GetProcessById(pid).WaitForExit(30_000); } catch { }   // ya había terminado
+            }
+
             var error = Installer.Install();
             MessageBox.Show(error == null
-                    ? "Driverrr se ha instalado.\n\nÁbrelo desde el menú Inicio (busca «Driverrr»). El fichero que descargaste ya no hace falta para usarlo."
+                    ? (isUpdate
+                        ? $"Driverrr se ha actualizado a la versión {Installer.ThisVersion}.\n\nÁbrelo desde el menú Inicio."
+                        : "Driverrr se ha instalado.\n\nÁbrelo desde el menú Inicio (busca «Driverrr»). El fichero que descargaste ya no hace falta para usarlo.")
                     : "No se pudo instalar Driverrr:\n\n" + error,
                 "Driverrr", MessageBoxButton.OK, error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
             Shutdown(error == null ? 0 : 1);
